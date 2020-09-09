@@ -3,7 +3,7 @@ import argparse
 import whois
 from crtsh import crtshAPI
 import json
-import shodan
+from shodan import Shodan
 from dnsdumpster.DNSDumpsterAPI import DNSDumpsterAPI
 
 #TO DO: implement shodan and censys API queries
@@ -18,11 +18,11 @@ def handle_args():
 
 # To do: write output to individual files
 def write_to_file(query):
-    print("[*] Writing results for %s query" % query)
+    print("\n[*] Writing results for %s query" % query)
 
 # To do: concat files to one single output html
 def export_results(output_path):
-    print("[*] Exporting results to report file at %s" % output_path)
+    print("\n[*] Exporting results to report file at %s" % output_path)
 
 # To do: implement censys lookup using API key
 def censys_lookup(domain, key):
@@ -30,11 +30,11 @@ def censys_lookup(domain, key):
 
 # To do: implement shodan lookup using API key
 def shodan_lookup(domain, key):
-    pass
+    api = shodan(key)
 
 # Attempt zone transfer
 def dns_lookup(domain):
-    print("[*] Performing DNS lookup\n")
+    print("\n[*] Performing DNS lookup\n")
     result = DNSDumpsterAPI().search(domain)
     for record in result['dns_records']:
         print("\n"+str(record).upper())
@@ -43,12 +43,12 @@ def dns_lookup(domain):
                 print("[+] %s : %s" % (r['domain'], r['ip']))
             # Account for txt records
             else:
-                print(r)
+                print(r) 
     return result
 
 def crtsh_lookup(domain):
     domains = []
-    print("[*] Performing crtsh lookup\n") 
+    print("\n[*] Performing crtsh lookup\n") 
     result = crtshAPI().search(domain)
     for record in result:
         for r in record:
@@ -65,7 +65,7 @@ def crtsh_lookup(domain):
     return result, domains
 
 def whois_lookup(domain):
-    print("[*] Performing whois lookup\n")
+    print("\n[*] Performing whois lookup\n")
     result = whois.whois(domain)
     for record in result:
         print('\n' + record.replace("_", " ").upper())
@@ -86,19 +86,19 @@ def main():
     
     discovered_domains = []
 
-    print("[*] Performing OSINT on domain %s" % args.domain)
-    
-    #whois_result = whois_lookup(domain)
-    
+    print("\n[*] Performing OSINT on domain %s" % args.domain)
+    #whois lookup
+    whois_result = whois_lookup(domain)
+    #crtsh lookup
     crtsh_result, crtsh_domains = crtsh_lookup(domain)
-
-    #dns_result = dns_lookup(domain)
-
-    # Perform shodan.io lookup to find online systems
+    #dns lookup
+    dns_result = dns_lookup(domain)
+    # shodan.io lookup
     # shodan_result = shodan_lookup(domain, key)
 
-    # Perform censys lookup to find online systems
+    # censys lookup
     # censys_result = censys_lookup(domain, key) 
+    
 
 if __name__ == "__main__":
         main()
